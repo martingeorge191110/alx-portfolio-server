@@ -30,3 +30,17 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.email}>"
+
+    def auth_dict(self):
+        """Convert the User object to a dictionary for auth process"""
+        return {
+            "id": self.id,
+            "f_n": self.f_n,
+            "l_n": self.l_n,
+            "email": self.email,
+            "user_type": self.user_type.value,
+            "avatar": self.avatar,
+            "nationality": self.nationality,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
