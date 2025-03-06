@@ -8,12 +8,22 @@ from flask_sqlalchemy import SQLAlchemy
 from middlewares.error_handler import Api_Errors
 from datastorage import db, init_db
 
+
 load_dotenv()
 
 server = Flask(__name__)
-server.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'  # Replace with your database URL
+
+MYSQL_USER = getenv('MYSQL_USER')
+MYSQL_PWD = getenv('MYSQL_PWD')
+MYSQL_HOST = getenv('MYSQL_HOST')
+MYSQL_DB = getenv('MYSQL_DB')
+
+server.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
+    MYSQL_USER, MYSQL_PWD, MYSQL_HOST, MYSQL_DB)
+server.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 cors = CORS(server)
+
 init_db(server)
 
 
