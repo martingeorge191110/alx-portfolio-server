@@ -28,7 +28,7 @@ class Notification(db.Model):
                               backref=db.backref('received_notifications', lazy=True))
 
     def __repr__(self):
-        return f"<notifcation_id {self.id}>"
+        return f"<Notifcation_id {self.id}>"
 
     def auth_dict(self):
         """Convert the notifications object to a dictionary for auth process"""
