@@ -4,6 +4,7 @@ from middlewares.error_handler import Api_Errors
 import validators
 from password_strength import PasswordStats
 from models.user import User
+from werkzeug.security import check_password_hash
 
 
 class AuthValidator:
@@ -14,10 +15,10 @@ class AuthValidator:
         """Static method to validate register body"""
         items = ['f_n', 'l_n', 'email', 'password', 'confirm_password', 'user_type']
         for i in items:
-            if i not in data_body or type(data_body[i]) is not str or data_body[i].strip() is '':
+            if i not in data_body or type(data_body[i]) is not str or data_body[i].strip() == '':
                 raise (Api_Errors.create_error(400, f"{i} is required and must be String!"))
 
-        if not validators.email('martingeorge191110@gmail.com'):
+        if not validators.email(data_body['email']):
             raise (Api_Errors.create_error(400, f"email address is not valid!"))
 
         if User.query.filter_by(email = data_body['email']).first():
@@ -34,3 +35,41 @@ class AuthValidator:
             raise (Api_Errors.create_error(400, f"please user_type must be either Investor or Business!"))
 
         return (True)
+
+
+    @staticmethod
+    def login_valid(data_body):
+        """Static method to validate login request body"""
+        items = ['email', 'password']
+        for i in items:
+            if i not in data_body or type(data_body[i]) is not str or data_body[i].strip() == '':
+                raise (Api_Errors.create_error(400, f"{i} is required and must be String!"))
+
+        if not validators.email(data_body['email']):
+            raise (Api_Errors.create_error(400, f"email address is not valid!"))
+
+        user = User.query.filter_by(email = data_body['email']).first()
+        if not user:
+            raise (Api_Errors.create_error(400, f"email address is not exists, register first!"))
+
+        check_pass = check_password_hash(user.password, data_body['password'])
+        if not check_pass:
+            raise (Api_Errors.create_error(400, f"Password or Email address is not true!"))
+
+        return (user)
+
+
+    @staticmethod
+    def request_code_valid(data_body):
+        """Static method to validate requesting code valid body"""
+        if 'email' not in data_body or type(data_body['email']) is not str or data_body['email'].strip() is '':
+            raise (Api_Errors.create_error(400, f"email address is required and must be String!"))
+
+        if not validators.email(data_body['email']):
+            raise (Api_Errors.create_error(400, f"email address is not valid!"))
+
+        user = User.query.filter_by(email = data_body['email']).first()
+        if not user:
+            raise (Api_Errors.create_error(400, f"email address is not exists, register first!"))
+
+        return (user)

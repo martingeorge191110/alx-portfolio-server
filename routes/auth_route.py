@@ -8,6 +8,7 @@ from models.user import User
 from engine.db_storage import db
 from datetime import datetime, timedelta
 import jwt
+import random
 from os import getenv
 
 
@@ -41,6 +42,7 @@ def register():
 
         return (jsonify({
             "message": "User registered successfully",
+            "success": True,
             "user": new_user.auth_dict(),
             "token": token
         }), 201)
@@ -48,3 +50,59 @@ def register():
     except Exception as e:
         db.session.rollback()
         raise (Api_Errors.create_error(500, str(e)))
+
+
+@auth_route.route('/login', methods=['POST'], strict_slashes=False)
+def login():
+    """Login Route controller"""
+    try:
+        data = request.data.decode()
+        data_body = json.loads(data)
+
+        user = AuthValidator.login_valid(data_body)
+
+        token_payload = {
+            "user_id": str(user.id),
+            "exp": datetime.utcnow() + timedelta(days=3)
+        }
+
+        token = jwt.encode(token_payload, getenv('JWT_KEY'), algorithm=getenv('JWT_ALG'))
+
+        return (jsonify({
+            "message": "User Login successfully",
+            "success": True,
+            "user": user.auth_dict(),
+            "token": token
+        }), 200)
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(500, str(err)))
+
+
+@auth_route.route('/request-code', methods=['POST'], strict_slashes=False)
+def request_code():
+    from utilies.mail_helper import send_code_mail
+
+    try:
+        data = request.data.decode()
+        data_body = json.loads(data)
+
+        user = AuthValidator.request_code_valid(data_body)
+
+        hashed_code = generate_password_hash(str(random.randint(100000, 999999)))
+        expiration_time = datetime.now() + timedelta(hours=1)
+
+        user.gen_code = hashed_code
+        user.expired_date_gen_code = expiration_time
+
+        db.session.commit()
+
+        send_code_mail(user.email, hashed_code, expiration_time)
+
+        return (jsonify({
+            "message": "Code has been sent successfully",
+            "success": True
+        }), 200)
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(500, str(err)))

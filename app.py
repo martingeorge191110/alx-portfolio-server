@@ -15,6 +15,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = getenv("JWT_KEY")
+app.config['JWT_ALG'] = getenv("JWT_ALG")
+app.config['GMAIL_USER'] = getenv("GMAIL_USER")
+app.config['GMAIL_APP_PASSWORD'] = getenv("GMAIL_PASS")
 
 cors = CORS(app)
 
