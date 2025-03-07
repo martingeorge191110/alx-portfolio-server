@@ -47,9 +47,9 @@ def register():
             "token": token
         }), 201)
 
-    except Exception as e:
+    except Exception as err:
         db.session.rollback()
-        raise (Api_Errors.create_error(500, str(e)))
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
 
 
 @auth_route.route('/login', methods=['POST'], strict_slashes=False)
@@ -76,7 +76,7 @@ def login():
         }), 200)
     except Exception as err:
         db.session.rollback()
-        raise (Api_Errors.create_error(500, str(err)))
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
 
 
 @auth_route.route('/request-code', methods=['POST'], strict_slashes=False)
@@ -106,4 +106,44 @@ def request_code():
         }), 200)
     except Exception as err:
         db.session.rollback()
-        raise (Api_Errors.create_error(500, str(err)))
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
+
+
+@auth_route.route('/reset-pass', methods=['POST'], strict_slashes=False)
+def reset_pass_code():
+    try:
+        data = request.data.decode()
+        data_body = json.loads(data)
+
+        AuthValidator.reset_pass_code_valid(data_body)
+
+        return (jsonify({
+            "message": "Now you can successfully reset your password",
+            "success": True
+        }), 200)
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
+
+
+@auth_route.route('/reset-pass', methods=['PUT'], strict_slashes=False)
+def reset_password():
+    try:
+        data = request.data.decode()
+        data_body = json.loads(data)
+
+        user = AuthValidator.reset_password_valid(data_body)
+
+        user.gen_code = None
+        user.expired_date_gen_code = None
+        user.password = generate_password_hash(data_body.get('password'))
+
+        db.session.commit()
+
+        return (jsonify({
+            "message": "successfully, new Password has been generated!",
+            "success": True
+        }), 200)
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
