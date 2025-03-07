@@ -89,7 +89,8 @@ def request_code():
 
         user = AuthValidator.request_code_valid(data_body)
 
-        hashed_code = generate_password_hash(str(random.randint(100000, 999999)))
+        code = str(random.randint(100000, 999999))
+        hashed_code = generate_password_hash(code)
         expiration_time = datetime.now() + timedelta(hours=1)
 
         user.gen_code = hashed_code
@@ -97,7 +98,7 @@ def request_code():
 
         db.session.commit()
 
-        send_code_mail(user.email, hashed_code, expiration_time)
+        send_code_mail(user.email, code, expiration_time)
 
         return (jsonify({
             "message": "Code has been sent successfully",
