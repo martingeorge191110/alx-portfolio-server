@@ -13,7 +13,7 @@ class CompanyGrowthRate(db.Model):
     year = db.Column(db.Integer, nullable=False)
     profit = db.Column(db.String(191), nullable=False)
 
-    company = db.relationship('Company', backref=db.backref('growth_rates', Lazy=True))
+    company = db.relationship('Company', backref=db.backref('growth_rates', lazy=True))
 
     def __repr__(self):
         return f"<CompanyGrowthRates company_id={self.company_id}, year={self.year}, profit={self.profit}>"

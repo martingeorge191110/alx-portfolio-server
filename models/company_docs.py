@@ -12,7 +12,7 @@ class CompanyDocs(db.Model):
     company_id = db.Column(db.String(191), db.ForeignKey('companies.id'), nullable=False)
     doc_url = db.Column(db.String(191), nullable=False)
 
-    company = db.relationship('Company', backref=db.backref('company_docs', Lazy=True))
+    company = db.relationship('Company', backref=db.backref('company_docs', lazy=True))
 
     def __repr__(self):
         return f"<CompanyGrowthRates company_id={self.company_id}, doc_url={self.doc_url}>"

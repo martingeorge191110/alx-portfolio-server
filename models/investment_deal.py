@@ -23,8 +23,8 @@ class InvestmentDeal(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    user = db.relationship('User', backref=db.backref('investment_deals', Lazy=True))
-    company = db.relationship('Company', backref=db.backref('investment_deals', Lazy=True))
+    user = db.relationship('User', backref=db.backref('investment_deals', lazy=True))
+    company = db.relationship('Company', backref=db.backref('investment_deals', lazy=True))
 
     def __repr__(self):
         return f"<Investment_Id={self.id}>"

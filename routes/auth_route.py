@@ -29,6 +29,7 @@ def register():
         new_user.email = data_body.get('email').strip().lower()
         new_user.password = generate_password_hash(data_body.get('password'))
         new_user.user_type = data_body.get('user_type')
+        new_user.nationality = data_body.get('nationality')
 
         db.session.add(new_user)
         db.session.commit()

@@ -15,7 +15,7 @@ class AuthValidator:
     @staticmethod
     def register_valid(data_body):
         """Static method to validate register body"""
-        items = ['f_n', 'l_n', 'email', 'password', 'confirm_password', 'user_type']
+        items = ['f_n', 'l_n', 'email', 'password', 'confirm_password', 'user_type', 'nationality']
         for i in items:
             if i not in data_body or type(data_body[i]) is not str or data_body[i].strip() == '':
                 raise (Api_Errors.create_error(400, f"{i} is required and must be String!"))

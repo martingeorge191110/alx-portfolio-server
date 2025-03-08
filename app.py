@@ -19,7 +19,7 @@ app.config['JWT_ALG'] = getenv("JWT_ALG")
 app.config['GMAIL_USER'] = getenv("GMAIL_USER")
 app.config['GMAIL_APP_PASSWORD'] = getenv("GMAIL_PASS")
 
-cors = CORS(app)
+cors = CORS(app, supports_credentials=True, origins=["*"])
 
 db_storage = DBStorage(app)
 
