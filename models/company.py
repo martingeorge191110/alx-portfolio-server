@@ -44,3 +44,23 @@ class Company(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
+
+    def company_card_dict(self):
+        """Function that retreive card of company info"""
+        return {
+            "id": self.company_id,
+            "name": self.name,
+            "contact email": self.contact_email,
+            "industry": self.industry,
+            "avatar":  self.avatar if self.avatar else None,
+            "founder_year": self.founder_year,
+            "valuation": self.valuation
+        }
+    
+    def company_investment_card_dict(self, investment_deal=None):
+        """Function that retreive card of company info"and deal"""
+        data = {}
+        data['company'] = self.company_card_dict()
+        data['deal'] = investment_deal
+
+        return (data)

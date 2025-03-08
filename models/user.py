@@ -39,6 +39,8 @@ class User(db.Model):
             "l_n": self.l_n,
             "email": self.email,
             "user_type": self.user_type.value,
+            "paid": self.paid,
+            "subis_end_date": self.subis_end_date,
             "avatar": self.avatar,
             "nationality": self.nationality,
             "created_at": self.created_at.isoformat() if self.created_at else None,

@@ -7,6 +7,7 @@ from flask_cors import CORS
 from middlewares.error_handler import Api_Errors
 from engine.db_storage import DBStorage
 from routes.auth_route import auth_route
+from routes.user_route import user_route
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ db_storage = DBStorage(app)
 
 app_bp = Blueprint('api', __name__, url_prefix='/api')
 app_bp.register_blueprint(auth_route)
+app_bp.register_blueprint(user_route)
 app.register_blueprint(app_bp)
 
 
