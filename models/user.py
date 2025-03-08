@@ -11,7 +11,7 @@ class UsersTypes(PyEnum):
 
 class User(db.Model):
     __tablename__ = 'users'
-    
+
     id = db.Column(db.String(291), primary_key=True, default=lambda: str(uuid.uuid4()))
     f_n = db.Column(db.String(291), nullable=False)
     l_n = db.Column(db.String(291), nullable=False)
