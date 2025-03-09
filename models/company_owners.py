@@ -11,6 +11,7 @@ class CompanyOwner(db.Model):
     rel_id = db.Column(db.String(291), unique=True, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(191), db.ForeignKey('users.id'), nullable=False)
     company_id = db.Column(db.String(191), db.ForeignKey('companies.id'), nullable=False)
+    user_role = db.Column(db.String(291), nullable=False)
 
     user = db.relationship('User', backref=db.backref('owned_companies', lazy=True))
     company = db.relationship('Company', backref=db.backref('owners', lazy=True))
