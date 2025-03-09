@@ -2,6 +2,8 @@
 
 from models import db
 import uuid
+from cryptography.fernet import Fernet
+from os import getenv
 
 
 class Company(db.Model):
@@ -50,6 +52,8 @@ class Company(db.Model):
 
     def company_card_dict(self):
         """Function that retreive card of company info"""
+        f = Fernet(getenv('FERNET_KEY'))
+
         return {
             "id": self.id,
             "name": self.name,
@@ -57,8 +61,8 @@ class Company(db.Model):
             "industry": self.industry,
             "avatar":  self.avatar if self.avatar else None,
             "founder_year": self.founder_year,
-            "valuation": self.valuation,
-            "location": self.location
+            "valuation":  float(f.decrypt(self.valuation.encode()).decode()),
+            "location": str(f.decrypt(self.location.encode()).decode())
         }
     
     def company_investment_card_dict(self, investment_deal=None):
