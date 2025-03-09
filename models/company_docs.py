@@ -11,6 +11,8 @@ class CompanyDocs(db.Model):
     id = db.Column(db.String(191), primary_key=True, default=lambda: str(uuid.uuid4()))
     company_id = db.Column(db.String(191), db.ForeignKey('companies.id'), nullable=False)
     doc_url = db.Column(db.String(191), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    title = db.Column(db.String(191), nullable=False)
 
     company = db.relationship('Company', backref=db.backref('company_docs', lazy=True))
 
