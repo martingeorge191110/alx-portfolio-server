@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
+"""model for implementation of invitation system"""
+
 
 from middlewares.error_handler import Api_Errors
 from models import db
 from datetime import datetime, timedelta
 import uuid
 
-class CompanyAgentInvitaion():
+class CompanyAgentInvitaion(db.Model):
     
     __tablename__ = "company_agent_invitation"
     
@@ -17,10 +19,12 @@ class CompanyAgentInvitaion():
     created_at = created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime, nullable=False)
     
-    def expire_at(self):
+    def is_expired(self):
+        """return invitation expiry date"""
         return datetime.utcnow() > self.expire_at
     
     def to_dict(self):
+        """return convert stored data to dictionary"""
         return {
             "id": self.id,
             "inviter_id": self.inviter_id,
