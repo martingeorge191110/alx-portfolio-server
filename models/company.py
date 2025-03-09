@@ -29,7 +29,7 @@ class Company(db.Model):
     def to_dict(self):
         """Convert Company object to a dictionary"""
         return {
-            "id": self.company_id,
+            "id": self.id,
             "name": self.name,
             "description": self.description,
             "contact number": self.contact_number,
@@ -48,7 +48,7 @@ class Company(db.Model):
     def company_card_dict(self):
         """Function that retreive card of company info"""
         return {
-            "id": self.company_id,
+            "id": self.id,
             "name": self.name,
             "contact email": self.contact_email,
             "industry": self.industry,
@@ -61,6 +61,6 @@ class Company(db.Model):
         """Function that retreive card of company info"and deal"""
         data = {}
         data['company'] = self.company_card_dict()
-        data['deal'] = investment_deal
+        data['deal'] = investment_deal.to_dict() if investment_deal else None
 
         return (data)
