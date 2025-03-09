@@ -4,12 +4,14 @@ from models.company import Company
 from flask import Blueprint, jsonify, request
 from middlewares.error_handler import Api_Errors
 from models import db
+from middlewares.verify_token import verify_token_middleware
 
 
 company_route = Blueprint('company', __name__, url_prefix='/company')
 
 
-@company_route.route('/search', methods=['GET'])
+@company_route.route('/search/', methods=['GET'])
+@verify_token_middleware
 def search_company_by_name():
     """search by company name"""
     try:
@@ -33,7 +35,8 @@ def search_company_by_name():
     except Exception as err:
         raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
 
-@company_route.route('/filter', method=["GET"])
+@company_route.route('/filter/', method=["GET"])
+@verify_token_middleware
 def filter_companies():
     """Filters companies based on specified criteria"""
     try:
