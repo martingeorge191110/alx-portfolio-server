@@ -20,6 +20,9 @@ class Company(db.Model):
     stock_market = db.Column(db.Boolean, default=False, nullable=False)
     founder_year = db.Column(db.Integer, nullable=False)
     valuation = db.Column(db.String(100), nullable=False)
+    paid = db.Column(db.Boolean, default=False)
+    subis_end_date = db.Column(db.DateTime, nullable=True)
+    subis_start_date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
@@ -54,7 +57,8 @@ class Company(db.Model):
             "industry": self.industry,
             "avatar":  self.avatar if self.avatar else None,
             "founder_year": self.founder_year,
-            "valuation": self.valuation
+            "valuation": self.valuation,
+            "location": self.location
         }
     
     def company_investment_card_dict(self, investment_deal=None):
@@ -64,3 +68,20 @@ class Company(db.Model):
         data['deal'] = investment_deal.to_dict() if investment_deal else None
 
         return (data)
+
+    def create_company_db(data_body, f):
+        """Function creates a new company db in Company class"""
+
+        new_company = Company()
+
+        new_company.name = data_body['name']
+        new_company.description = data_body['description']
+        new_company.contact_email = data_body['contact_email']
+        new_company.contact_number = data_body['contact_number']
+        new_company.industry = data_body['industry']
+        new_company.location = f.encrypt(data_body['location'].encode()).decode()
+        new_company.stock_market = data_body['stock_market']
+        new_company.founder_year = data_body['founder_year']
+        new_company.valuation = f.encrypt(str(data_body['valuation']).encode()).decode()
+
+        return (new_company)

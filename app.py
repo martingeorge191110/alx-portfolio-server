@@ -8,6 +8,8 @@ from middlewares.error_handler import Api_Errors
 from engine.db_storage import DBStorage
 from routes.auth_route import auth_route
 from routes.user_route import user_route
+from routes.company_route import company_route
+
 
 load_dotenv()
 
@@ -19,6 +21,10 @@ app.config['JWT_SECRET_KEY'] = getenv("JWT_KEY")
 app.config['JWT_ALG'] = getenv("JWT_ALG")
 app.config['GMAIL_USER'] = getenv("GMAIL_USER")
 app.config['GMAIL_APP_PASSWORD'] = getenv("GMAIL_PASS")
+app.config['FERNET_KEY'] = getenv("FERNET_KEY")
+app.config['STRIPE_PUPLISH_KEY'] = getenv("STRIPE_PUPLISH_KEY")
+app.config['STRIPE_SECRET_KEY'] = getenv("STRIPE_SECRET_KEY")
+app.config['STRIPE_WEBHOOK_SECRET'] = getenv("STRIPE_WEBHOOK_SECRET")
 
 cors = CORS(app, supports_credentials=True, origins=["*"])
 
@@ -27,6 +33,7 @@ db_storage = DBStorage(app)
 app_bp = Blueprint('api', __name__, url_prefix='/api')
 app_bp.register_blueprint(auth_route)
 app_bp.register_blueprint(user_route)
+app_bp.register_blueprint(company_route)
 app.register_blueprint(app_bp)
 
 
