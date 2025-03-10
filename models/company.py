@@ -21,7 +21,7 @@ class Company(db.Model):
     avatar = db.Column(db.String(500), nullable=True)
     stock_market = db.Column(db.Boolean, default=False, nullable=False)
     founder_year = db.Column(db.Integer, nullable=False)
-    valuation = db.Column(db.String(100), nullable=False)
+    valuation = db.Column(db.Float, nullable=False)
     paid = db.Column(db.Boolean, default=False)
     subis_end_date = db.Column(db.DateTime, nullable=True)
     subis_start_date = db.Column(db.DateTime, nullable=True)
@@ -61,8 +61,8 @@ class Company(db.Model):
             "industry": self.industry,
             "avatar":  self.avatar if self.avatar else None,
             "founder_year": self.founder_year,
-            "valuation":  float(f.decrypt(self.valuation.encode()).decode()),
-            "location": str(f.decrypt(self.location.encode()).decode())
+            "valuation":  self.valuation,
+            "location": self.location
         }
 
     def company_investment_card_dict(self, investment_deal=None):
@@ -83,9 +83,9 @@ class Company(db.Model):
         new_company.contact_email = data_body['contact_email']
         new_company.contact_number = data_body['contact_number']
         new_company.industry = data_body['industry']
-        new_company.location = f.encrypt(data_body['location'].encode()).decode()
+        new_company.location = data_body['location']
         new_company.stock_market = data_body['stock_market']
         new_company.founder_year = data_body['founder_year']
-        new_company.valuation = f.encrypt(str(data_body['valuation']).encode()).decode()
+        new_company.valuation = data_body['valuation']
 
         return (new_company)
