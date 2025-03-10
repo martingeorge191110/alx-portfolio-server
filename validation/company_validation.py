@@ -48,3 +48,18 @@ class CompanyValidation:
             return (company.to_dict())
         except Exception as err:
             raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
+        
+
+    @staticmethod
+    def growth_rates_validation(data_body):
+        """"""
+        if type(data_body) is not list:
+            raise (Api_Errors.create_error(400, "DaTa must be an array of dicts!"))
+
+        for ele in data_body:
+            if 'year' not in ele or 'profit' not in ele:
+                raise (Api_Errors.create_error(400, "Profit and year must be included!"))
+            if type(ele['year']) is not int or type(ele['profit']) is not float:
+                raise (Api_Errors.create_error(400, "Profit and year must be float!"))
+
+        return (True)

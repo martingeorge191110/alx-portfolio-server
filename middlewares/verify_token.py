@@ -24,7 +24,6 @@ def verify_token_middleware(f):
 
         try:
             payload = jwt.decode(token, getenv("JWT_KEY", ""), algorithms=[getenv('JWT_ALG')])
-            print(payload)
             g.user_id = payload.get("user_id")
         except jwt.ExpiredSignatureError:
             raise (Api_Errors.create_error(401, "Token has expired!"))

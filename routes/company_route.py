@@ -12,7 +12,6 @@ from models.user import User
 from models.company_owners import CompanyOwner
 from utilies.stripe_utilies import create_stripe_session
 import stripe
-from cryptography.fernet import Fernet
 from os import getenv
 from datetime import datetime, timedelta
 from utilies.company_utils import get_filtered_companies, invite_owner, accept_invitation
