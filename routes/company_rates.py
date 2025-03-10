@@ -26,7 +26,7 @@ def growth_rates_information(company_id):
 
         company = CompanyValidation.company_id_validation(company_id)
 
-        rates = CompanyGrowthRate.query.filter_by(company_id = company_id).all()
+        rates = CompanyGrowthRate.query.filter_by(company_id = company_id).order_by(CompanyGrowthRate.year.asc()).all()
         rates_list = []
         for rate in rates:
             rates_list.append(rate.to_dict())
