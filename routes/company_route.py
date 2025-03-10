@@ -211,12 +211,23 @@ def retreive_company_dashboard(id):
 @verify_token_middleware
 def document_upload():
     """upload documents API"""
+    user_id = g.user_id
+
     try:
         data = request.get_json()
         company_id = data.get("company_id")
         doc_url = data.get("doc_url")
         title = data.get("title")
         description = data.get("description", "")
+        
+        user = User.query.filter_by(id = user_id).first()
+        if not user:
+            raise (Api_Errors.create_error(404, "User is not found!"))
+
+        authorization = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id, active=True).first()
+        
+        if not authorization:
+            raise Api_Errors.create_error(403, "Unauthorized to manage documents for this company")
 
         if not company_id or not doc_url or not title:
             raise Api_Errors.create_error(400, "Company ID, document URL, and title are required!")
@@ -242,7 +253,15 @@ def document_upload():
 def delete_company_document(document_id):
     """Deletes a specific company document."""
     try:
+        user_id = g.user_id
+        data = request.get_json()
+        company_id = data.get("company_id")
+
         document = CompanyDocs.query.filter_by(id=document_id).first()
+        
+        authorization = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id, active=True).first()
+        if not authorization:
+            raise Api_Errors.create_error(403, "Unauthorized to manage documents for this company")        
 
         if not document:
             raise Api_Errors.create_error(404, "Document not found!")
