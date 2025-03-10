@@ -73,7 +73,7 @@ class Company(db.Model):
 
         return (data)
 
-    def create_company_db(data_body, f):
+    def create_company_db(data_body):
         """Function creates a new company db in Company class"""
 
         new_company = Company()

@@ -77,14 +77,7 @@ def register_new_company():
 
         CompanyValidation.register_validation(data_body)
 
-        secret_key = getenv('FERNET_KEY')
-
-        if not secret_key:
-            raise (Api_Errors.create_error(500, "FERNET_KEY is missing from environment variables!"))
-
-        f = Fernet(secret_key)
-
-        new_company = Company.create_company_db(data_body, f)
+        new_company = Company.create_company_db(data_body)
 
         db.session.add(new_company)
         db.session.flush()

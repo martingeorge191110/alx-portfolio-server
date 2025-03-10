@@ -17,3 +17,9 @@ class CompanyGrowthRate(db.Model):
 
     def __repr__(self):
         return f"<CompanyGrowthRates company_id={self.company_id}, year={self.year}, profit={self.profit}>"
+    
+    def to_dict(self):
+        return {
+            "year": self.year,
+            "profit": self.profit,
+        }
