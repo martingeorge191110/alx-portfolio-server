@@ -16,7 +16,7 @@ from cryptography.fernet import Fernet
 from os import getenv
 from datetime import datetime, timedelta
 from utilies.company_utils import get_filtered_companies
-from utilies.company_utils import get_filtered_companies, invite_agent
+
 
 company_route = Blueprint('company', __name__, url_prefix='/company')
 
@@ -53,17 +53,17 @@ def filter_companies():
     response = get_filtered_companies()
     return jsonify(response), 200 if response.get('success') else 500
 
-@company_route.route('/invite-agent/', methods=['POST'])
-@verify_token_middleware
-def invite():
-    response = invite_agent()
-    return jsonify(response),200 if response.get('success') else 500
+# @company_route.route('/invite-agent/', methods=['POST'])
+# @verify_token_middleware
+# def invite():
+#     response = invite_agent()
+#     return jsonify(response),200 if response.get('success') else 500
 
-@company_route.route('/invite-agent/', methods=['PUT'])
-@verify_token_middleware
-def handle_invite():
-    response = invite_agent()
-    return jsonify(response),200 if response.get('success') else 500
+# @company_route.route('/invite-agent/', methods=['PUT'])
+# @verify_token_middleware
+# def handle_invite():
+#     response = invite_agent()
+#     return jsonify(response),200 if response.get('success') else 500
 
 @company_route.route('/register', methods=["POST"])
 @verify_token_middleware
@@ -96,6 +96,7 @@ def register_new_company():
         relationship.user_id = user_id
         relationship.company_id = new_company.id
         relationship.user_role = data_body['user_role']
+        relationship.active = True
 
         db.session.add(relationship)
         db.session.commit()
@@ -166,3 +167,43 @@ def stripe_webhook():
             return jsonify({"error": str(err)}), 500
 
     return jsonify({"message": "Webhook received but no action taken."}), 200
+
+@company_route.route("/<string:id>", methods=['GET'])
+@verify_token_middleware
+def retreive_company_dashboard(id):
+    user_id = g.user_id
+
+    try:
+        user = User.query.filter_by(id = user_id).first()
+        if not user:
+            raise (Api_Errors.create_error(404, "User is not found!"))
+
+        data_result = {}
+        user_data = user.auth_dict()
+        company = CompanyValidation.company_id_validation(id)
+
+        data_result['user'] = user_data
+        data_result['company'] = company
+
+        relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = id).first()
+        if relationship:
+            data_result['isOwner'] = True
+        else:
+            data_result['isOwner'] = False
+
+        company_owners = db.session.query(User).join(CompanyOwner).filter(CompanyOwner.company_id == id, CompanyOwner.active == True).all()
+        company_owners_list = []
+        for user in company_owners:
+            company_owners_list.append(user.auth_dict())
+
+        data_result['owners'] = company_owners_list
+        return (jsonify({
+            "success": True,
+            "message": "successfully Retreived company data and owners data!",
+            "data_result": data_result
+        }), 200)
+
+
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))

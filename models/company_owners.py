@@ -12,6 +12,7 @@ class CompanyOwner(db.Model):
     user_id = db.Column(db.String(191), db.ForeignKey('users.id'), nullable=False)
     company_id = db.Column(db.String(191), db.ForeignKey('companies.id'), nullable=False)
     user_role = db.Column(db.String(291), nullable=False)
+    active = db.Column(db.Boolean, default=False)
 
     user = db.relationship('User', backref=db.backref('owned_companies', lazy=True))
     company = db.relationship('Company', backref=db.backref('owners', lazy=True))
