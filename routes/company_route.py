@@ -189,10 +189,16 @@ def retreive_company_dashboard(id):
         else:
             data_result['isOwner'] = False
 
-        company_owners = db.session.query(User).join(CompanyOwner).filter(CompanyOwner.company_id == id, CompanyOwner.active == True).all()
+        company_owners = db.session.query(User, CompanyOwner.user_role).join(CompanyOwner).filter(CompanyOwner.company_id == id, CompanyOwner.active == True).all()
         company_owners_list = []
-        for user in company_owners:
-            company_owners_list.append(user.auth_dict())
+        for user, user_role in company_owners:
+            company_owners_list.append({
+                "id": user.id,
+                "f_n": user.f_n,
+                "l_n": user.l_n,
+                "avatar": user.avatar,
+                "role": user_role
+            })
 
         data_result['owners'] = company_owners_list
         return (jsonify({
