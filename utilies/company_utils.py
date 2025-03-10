@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
-from models import Company
-from flask import request
+from flask import request, jsonify
 from middlewares.error_handler import Api_Errors
+from models.company_owners import CompanyOwner
+from models.company import Company
+from models.user import User
 from models import db
+import uuid
+
 
 def get_filtered_companies():
     """Filters companies based on specified criteria"""
@@ -62,75 +66,54 @@ def get_filtered_companies():
         return Api_Errors.create_error(500, str(err))
 
 
+def invite_owner():
+    """Invite a user to be an owner of a specific company"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        company_id = data.get('company_id')
+        user_role = data.get('user_role', 'Owner')
+
+        if not user_id or not company_id:
+            raise Api_Errors.create_error(400, "User ID and Company ID are required!")
+
+        user = User.query.get(user_id)
+        company = Company.query.get(company_id)
+
+        if not user or not company:
+            raise Api_Errors.create_error(404, "User or Company not found!")
+
+        existing_invite = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id).first()
+        if existing_invite:
+            raise Api_Errors.create_error(400, "User is already invited or an owner!")
+
+        new_invite = CompanyOwner(
+            rel_id=str(uuid.uuid4()),
+            user_id=user_id,
+            company_id=company_id,
+            user_role=user_role,
+            active=False
+        )
+        db.session.add(new_invite)
+        db.session.commit()
+
+        return jsonify({"message": "Invitation sent successfully", "success": True}), 201
+    except Exception as err:
+        db.session.rollback()
+        raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
 
 
-# def invite_agent():
-#     """Invites a user to be an agent in a company"""
-#     try:
-#         data = request.get_json()
+def accept_invitation(rel_id):
+    """Accept an invitation to become an owner of a company"""
+    try:
+        invite = CompanyOwner.query.filter_by(rel_id=rel_id, active=False).first()
+        if not invite:
+            raise Api_Errors.create_error(404, "Invitation not found or already accepted!")
         
-#         inviter_id = data.get("inviter_id") 
-#         invitee_id = data.get("invitee_id")
-#         company_id = data.get("company_id")
+        invite.active = True
+        db.session.commit()
 
-#         if not invitee_id or not inviter_id or not company_id:
-#             raise(Api_Errors.create_error(400, "Missing required fields"))
-
-#         existing_invitation = CompanyAgentInvitaion.query.filter_by(
-#             invitee_id=invitee_id, company_id=company_id, status="pending").first()
-
-#         if existing_invitation:
-#             raise(Api_Errors.create_error(400, "An active invitation already exists"))
-
-#         new_invitation = CompanyAgentInvitaion(
-#             inviter_id=inviter_id,
-#             invitee_id=invitee_id,
-#             company_id=company_id
-#             )
-
-#         db.session.add(new_invitation)
-#         db.session.c
-
-#         return {"message": "Invitation sent successfully", 
-#                         "invite_id": new_invitation.id}
-
-#     except Exception as err:
-#         return Api_Errors.create_error(500, str(err))
-
-
-# def invite_action():
-#     """Handles the acceptance or rejection of an invitation"""
-#     try:
-#         data = request.get_json()
-
-#         invite_id = data.get("id")
-#         action = data.get("action")  # Expected: "accept" or "reject"
-
-#         if not invite_id or action not in ["accept", "reject"]:
-#             raise Api_Errors.create_error(400, "Missing required fields or invalid action")
-
-#         invitation = CompanyAgentInvitaion.query.filter_by(id=invite_id).first()
-
-#         if not invitation:
-#             raise Api_Errors.create_error(404, "Invitation not found")
-
-#         if invitation.invite_status != "pending":
-#             raise Api_Errors.create_error(400, "Invitation is already processed")
-
-#         if invitation.is_expired():
-#             raise Api_Errors.create_error(400, "Invitation has expired")
-
-#         if action == "accept":
-#             invitation.invite_status = "accepted"
-#         elif action == "reject":
-#             invitation.invite_status = "rejected"
-
-#         db.session.commit()
-
-#         return {
-#             "message": f"Invitation {action}ed successfully",
-#             "success": True
-#         }
-
-#     except Exception as err:
-#         return Api_Errors.create_error(500, str(err))
+        return jsonify({"message": "Invitation accepted successfully", "success": True}), 200
+    except Exception as err:
+        db.session.rollback()
+        raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))

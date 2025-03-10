@@ -15,7 +15,7 @@ import stripe
 from cryptography.fernet import Fernet
 from os import getenv
 from datetime import datetime, timedelta
-from utilies.company_utils import get_filtered_companies
+from utilies.company_utils import get_filtered_companies, invite_owner, accept_invitation
 
 
 company_route = Blueprint('company', __name__, url_prefix='/company')
@@ -53,17 +53,15 @@ def filter_companies():
     response = get_filtered_companies()
     return jsonify(response), 200 if response.get('success') else 500
 
-# @company_route.route('/invite-agent/', methods=['POST'])
-# @verify_token_middleware
-# def invite():
-#     response = invite_agent()
-#     return jsonify(response),200 if response.get('success') else 500
+@company_route.route('/invite', methods=['POST'])
+@verify_token_middleware
+def invite_owner_route():
+    return invite_owner()
 
-# @company_route.route('/invite-agent/', methods=['PUT'])
-# @verify_token_middleware
-# def handle_invite():
-#     response = invite_agent()
-#     return jsonify(response),200 if response.get('success') else 500
+@company_route.route('/accept/<string:rel_id>', methods=['PUT'])
+@verify_token_middleware
+def accept_invitation_route(rel_id):
+    return accept_invitation(rel_id)
 
 @company_route.route('/register', methods=["POST"])
 @verify_token_middleware

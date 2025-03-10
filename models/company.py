@@ -64,7 +64,7 @@ class Company(db.Model):
             "valuation":  float(f.decrypt(self.valuation.encode()).decode()),
             "location": str(f.decrypt(self.location.encode()).decode())
         }
-    
+
     def company_investment_card_dict(self, investment_deal=None):
         """Function that retreive card of company info"and deal"""
         data = {}
