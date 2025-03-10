@@ -18,7 +18,11 @@ class CompanyAgentInvitaion(db.Model):
     invite_status = db.Column(db.String(20), default="pending")
     created_at = created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime, nullable=False)
-    
+
+    inviter = db.relationship("User", foreign_keys=[inviter_id], backref="sent_invites")
+    invitee = db.relationship("User", foreign_keys=[invitee_id], backref="received_invites")
+    company = db.relationship("Company", backref="agent_invites")
+
     def is_expired(self):
         """return invitation expiry date"""
         return datetime.utcnow() > self.expire_at
