@@ -29,13 +29,13 @@ def search_company_by_name():
 
         if not company_name:
             raise(Api_Errors.create_error(400, "company name is required!"))
-        
-        companies = Company.query.filter(Company.name.ilike(f"%{company_name}%").all())
+
+        companies = Company.query.filter(Company.name.ilike(f"%{company_name}%")).all()
 
         if not companies:
             raise(Api_Errors.create_error(404, "No matching companines found!"))
-        
-        result = [companies.to_dict() for company in companies]
+
+        result = [company.to_dict() for company in companies]
 
         return ((jsonify({
             "message": "User Profile Retreived successfully",
