@@ -199,6 +199,48 @@ def retreive_company_dashboard(id):
             "data_result": data_result
         }), 200)
 
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
+
+@company_route.route('/<string:company_id>/avatar', methods=["PUT"])
+@verify_token_middleware
+def change_company_avatar(company_id):
+    user_id = g.user_id
+
+    data = request.data.decode()
+    data_body = json.loads(data)
+
+    try:
+        if 'secure_url' not in data_body or type(data_body['secure_url']) is not str:
+            raise (Api_Errors.create_error(400, "Secure url is required and string!"))
+
+        if not str(data_body['secure_url']).startswith('https://res.cloudinary.com/daghpnbz3/image/upload/') and str(data_body['secure_url']).endswith('.jpg'):
+            raise (Api_Errors.create_error(400, "File uploaded is not valid!!"))
+
+        user = User.query.filter_by(id = user_id).first()
+        if not user:
+            raise (Api_Errors.create_error(404, "User is not found!"))
+
+        company = Company.query.filter_by(id = company_id).first()
+        if not company:
+            raise (Api_Errors.create_error(404, "Company is not found!"))
+        
+        relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = company_id, active = True)
+        if not relationship:
+            raise (Api_Errors.create_error(403, "You are not authirezed to to this action"))
+        
+        company.avatar = data_body['secure_url']
+
+        db.session.commit()
+
+        company_data = company.to_dict()
+
+        return ((jsonify({
+            "message": "User Profile picture Changed successfully!",
+            "success": True,
+            "secure_url": company_data['avatar']
+        }), 200))
 
     except Exception as err:
         db.session.rollback()
