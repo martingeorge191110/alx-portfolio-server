@@ -27,9 +27,11 @@ class CompanyValidation:
         if 'founder_year' not in data_body or type(data_body['founder_year']) is not int:
             raise (Api_Errors.create_error(400, "founder_year is required and must be Integer founder_year!"))
 
-        if 'valuation' not in data_body or type(data_body['valuation']) is not float:
-            raise (Api_Errors.create_error(400, "valuation is required and must be datetime!"))
-        
+        if 'valuation' not in data_body or type(data_body['valuation']) is not int:
+            raise (Api_Errors.create_error(400, "valuation is required and must be Integer!"))
+
+        data_body['valuation'] = float(data_body['valuation'])
+
         if 'stock_market' not in data_body or type(data_body['stock_market']) is not bool:
             raise (Api_Errors.create_error(400, "stock_market is required and must be datetime!"))
 
@@ -59,7 +61,8 @@ class CompanyValidation:
         for ele in data_body:
             if 'year' not in ele or 'profit' not in ele:
                 raise (Api_Errors.create_error(400, "Profit and year must be included!"))
-            if type(ele['year']) is not int or type(ele['profit']) is not float:
+            if type(ele['year']) is not int or type(ele['profit']) is not int:
                 raise (Api_Errors.create_error(400, "Profit and year must be float!"))
+            ele['profit'] = float(ele['profit'])
 
         return (True)
