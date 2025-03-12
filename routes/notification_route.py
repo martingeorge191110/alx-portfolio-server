@@ -89,3 +89,44 @@ def create_notification():
         return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
 
 
+@notification_route.route("/<string:notification_id>", methods=["PUT"])
+@verify_token_middleware
+def update_notification(notification_id):
+    """Update the content of an existing notification"""
+    try:
+        data = request.get_json()
+        user_id = g.user_id
+        
+        new_content = data.get("content")
+        new_type = data.get("type")
+        is_seen = data.get("is_seen")
+
+        if not any([new_content, new_type, is_seen is not None]):  # Ensure at least one field is updated
+            raise Api_Errors.create_error(400, "No update fields provided!")
+
+        notification = Notification.query.filter_by(id=notification_id).first()
+        if not notification:
+            raise Api_Errors.create_error(404, "Notification not found!")
+
+        if notification.from_user_id != user_id:
+            raise Api_Errors.create_error(403, "Unauthorized: You can only update your own notifications!")
+
+        if new_content:
+            notification.content = new_content
+        if new_type:
+            notification.type = new_type
+        if is_seen is not None:
+            notification.is_seen = is_seen
+
+        db.session.commit()
+
+        return {
+            "message": "Notification updated successfully!",
+            "notification": notification.auth_dict()
+        }, 200
+
+    except Exception as err:
+        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+
+
+
