@@ -10,10 +10,10 @@ from models import db
 from routes.company_route import company_route
 import uuid
 
-company_docs = company_route = Blueprint('company_docs', __name__, url_prefix='/company/doc_upload')
+company_docs = company_route = Blueprint('company_docs', __name__, url_prefix='/company/document')
 
 
-@company_route.route("/document/", methods=["POST"])
+@company_route.route("/", methods=["POST"])
 @verify_token_middleware
 def document_upload():
     """upload documents API"""
@@ -54,7 +54,7 @@ def document_upload():
         db.session.rollback()
         raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
 
-@company_route.route('/document/<string:document_id>', methods=['DELETE'])
+@company_route.route('/<string:document_id>', methods=['DELETE'])
 @verify_token_middleware
 def delete_company_document(document_id):
     """Deletes a specific company document."""
