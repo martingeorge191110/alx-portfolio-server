@@ -18,3 +18,12 @@ class CompanyDocs(db.Model):
 
     def __repr__(self):
         return f"<CompanyGrowthRates company_id={self.company_id}, doc_url={self.doc_url}>"
+
+    def to_dict(self):
+        """"""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "fileUrl": self.doc_url,
+        }
