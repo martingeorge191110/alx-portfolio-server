@@ -44,3 +44,48 @@ def get_notification(receiver_id):
 
     except Exception as err:
         return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+
+@notification_route.route("/", methods=["POST"])
+@verify_token_middleware
+def create_notification():
+    """Create a new notification"""
+    try:
+        data = request.get_json()
+        user_id = g.user_id
+
+        to_user_id = data.get("to_user_id")
+        content = data.get("content")
+        notif_type = data.get("type")
+        gen_code = data.get("gen_code")
+        email = data.get("email")
+
+        if not all([to_user_id, content, notif_type]):
+            raise Api_Errors.create_error(400, "Missing required fields!")
+
+        authorization = User.query.filter_by(user_id=user_id, gen_code=gen_code, email=email).first()
+        
+        if not authorization:
+            raise Api_Errors.create_error(403, "Unauthorized: Invalid credentials!")
+
+        recipient = User.query.filter_by(id=to_user_id).first()
+        if not recipient:
+            raise Api_Errors.create_error(404, "Recipient not found!")
+
+        new_notification = Notification(
+            id=str(uuid.uuid4()),
+            from_user_id=user_id,
+            to_user_id=to_user_id,
+            content=content,
+            type=notif_type,
+            is_seen=False
+        )
+        db.session.add(new_notification)
+        db.session.commit()
+
+        return {"message": "Notification created successfully!",
+                "notification": new_notification.auth_dict()}, 201
+
+    except Exception as err:
+        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+
+
