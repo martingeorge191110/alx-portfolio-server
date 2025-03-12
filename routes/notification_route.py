@@ -129,4 +129,24 @@ def update_notification(notification_id):
         return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
 
 
+@notification_route.route("/<string:notification_id>", methods=["DELETE"])
+@verify_token_middleware
+def delete_notification(notification_id):
+    """Delete a notification"""
+    try:
+        user_id = g.user_id
+        
+        notification = Notification.query.filter_by(id=notification_id).first()
+        if not notification:
+            raise Api_Errors.create_error(404, "Notification not found!")
 
+        if notification.from_user_id != user_id and notification.to_user_id != user_id:
+            raise Api_Errors.create_error(403, "Unauthorized: You can only delete your own notifications!")
+
+        db.session.delete(notification)
+        db.session.commit()
+
+        return {"message": "Notification deleted successfully!"}, 200
+
+    except Exception as err:
+        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
