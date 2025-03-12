@@ -52,7 +52,7 @@ def create_growth_rates(company_id):
     try:
         user = User.query.filter_by(id = user_id).first()
         if not user:
-            raise (Api_Errors.create_error(404, "User is not found!"))
+            raise Api_Errors.create_error(404, "User is not found!")
 
         company = CompanyValidation.company_id_validation(company_id)
 

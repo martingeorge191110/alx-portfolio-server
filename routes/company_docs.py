@@ -58,8 +58,8 @@ def document_upload():
 @verify_token_middleware
 def delete_company_document(document_id):
     """Deletes a specific company document."""
+    user_id = g.user_id
     try:
-        user_id = g.user_id
         data = request.get_json()
         company_id = data.get("company_id")
 
