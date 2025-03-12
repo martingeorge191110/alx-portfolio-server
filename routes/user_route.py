@@ -197,3 +197,41 @@ def stripe_webhook():
             return jsonify({"error": str(err)}), 500
 
     return jsonify({"message": "Webhook received but no action taken."}), 200
+
+@user_route.route("/search/", methods=["GET"])
+@verify_token_middleware
+def users_searching():
+    user_id = g.user_id
+    f_name = request.args.get('f_n').strip()
+    l_name = request.args.get('l_n').strip() if request.args.get('l_n') else None
+    page = request.args.get('page', 1)
+
+    if not f_name or f_name == 'null':
+        raise(Api_Errors.create_error(400, "At least user first name is required!"))
+
+    try:
+        if not User.query.filter_by(id = user_id).first():
+            raise (Api_Errors.create_error(404, "Users is not found!"))
+
+        users = User.query
+
+        if f_name:
+            users = users.filter(User.f_n.ilike(f"%{f_name}%"))
+
+        if l_name != 'null':
+            users = users.filter(User.l_n.ilike(f"%{l_name}%"))
+
+        pagination = users.paginate(page=int(page), per_page=10, error_out=False)
+        users = pagination.items
+        if not users:
+            raise(Api_Errors.create_error(404, "No matching Users found!"))
+
+        result = [user.auth_dict() for user in users]
+
+        return ((jsonify({
+            "message": "Users searching successfully!",
+            "success": True,
+            "users": result
+        }), 200))
+    except Exception as err:
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))

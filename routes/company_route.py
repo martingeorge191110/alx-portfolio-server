@@ -54,10 +54,11 @@ def filter_companies():
     response = get_filtered_companies()
     return jsonify(response), 200 if response.get('success') else 500
 
-@company_route.route('/invite', methods=['POST'])
+@company_route.route('/invite/<string:company_id>', methods=['POST'])
 @verify_token_middleware
-def invite_owner_route():
-    return invite_owner()
+def invite_owner_route(company_id):
+    user_id = g.user_id
+    return invite_owner(user_id, company_id)
 
 @company_route.route('/accept/<string:rel_id>', methods=['PUT'])
 @verify_token_middleware

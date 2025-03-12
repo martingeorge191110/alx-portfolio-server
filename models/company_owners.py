@@ -19,3 +19,13 @@ class CompanyOwner(db.Model):
 
     def __repr__(self):
         return f"<Companyowner user_id={self.user_id}, company_id={self.company_id}>"
+    
+    def to_dict(self):
+        """"""
+        return {
+            "rel_id": self.rel_id,
+            "company_id": self.company_id,
+            "user_id": self.user_id,
+            "user_role": self.user_role,
+            "active": self.active,
+        }

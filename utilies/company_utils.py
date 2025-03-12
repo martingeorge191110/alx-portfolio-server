@@ -66,30 +66,33 @@ def get_filtered_companies():
         return Api_Errors.create_error(500, str(err))
 
 
-def invite_owner():
+def invite_owner(main_user_id, company_id):
     """Invite a user to be an owner of a specific company"""
     try:
+        if not User.query.filter_by(id = main_user_id).first():
+            raise (Api_Errors.create_error(404, "User is not found!"))
+
         data = request.get_json()
-        user_id = data.get('user_id')
-        company_id = data.get('company_id')
+        new_owner_id = data.get('user_id')
+        print(new_owner_id, main_user_id)
         user_role = data.get('user_role', 'Owner')
 
-        if not user_id or not company_id:
+        if not new_owner_id or not company_id:
             raise Api_Errors.create_error(400, "User ID and Company ID are required!")
 
-        user = User.query.get(user_id)
-        company = Company.query.get(company_id)
+        user = User.query.filter_by(id = new_owner_id).first()
+        company = Company.query.filter_by(id = company_id).first()
 
         if not user or not company:
             raise Api_Errors.create_error(404, "User or Company not found!")
 
-        existing_invite = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id).first()
+        existing_invite = CompanyOwner.query.filter_by(user_id=new_owner_id, company_id=company_id).first()
         if existing_invite:
             raise Api_Errors.create_error(400, "User is already invited or an owner!")
 
         new_invite = CompanyOwner(
             rel_id=str(uuid.uuid4()),
-            user_id=user_id,
+            user_id=new_owner_id,
             company_id=company_id,
             user_role=user_role,
             active=False
@@ -97,7 +100,8 @@ def invite_owner():
         db.session.add(new_invite)
         db.session.commit()
 
-        return jsonify({"message": "Invitation sent successfully", "success": True}), 201
+        print(new_invite.to_dict())
+        return jsonify({"message": "Invitation sent successfully", "success": True, "invitation": new_invite.to_dict()}), 201
     except Exception as err:
         db.session.rollback()
         raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
