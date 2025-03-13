@@ -97,9 +97,9 @@ def get_specific_company_doc(company_id):
         
         relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = company_id, active = True).first()
         user_data = user.auth_dict()
-        if not relationship or not user_data['paid'] or user_data['subis_end_date'] < datetime.utcnow():
+        if not relationship and (not user_data['paid'] or (user_data['paid'] and user_data['subis_end_date'] < datetime.utcnow())):
             raise (Api_Errors.create_error(403, "You have not authorization to retreive the data!"))
-        
+
         all_docs = CompanyDocs.query.filter_by(company_id = company_id).all()
         docs_list = []
         for doc in all_docs:

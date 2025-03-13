@@ -65,6 +65,33 @@ def invite_owner_route(company_id):
 def accept_invitation_route(rel_id):
     return accept_invitation(rel_id)
 
+@company_route.route('/reject/<string:rel_id>', methods=['DELETE'])
+@verify_token_middleware
+def reject_invitation_route(rel_id):
+    user_id = g.user_id
+
+    if not rel_id or rel_id == 'null' or str(rel_id).strip() == '':
+        raise (Api_Errors.create_error(400, "relation id is required!"))
+
+    try:
+        user = User.query.filter_by(id = user_id).first()
+        if not user:
+            raise (Api_Errors.create_error(404, "User is not found!"))
+        
+        relationship = CompanyOwner.query.filter_by(rel_id = rel_id).first()
+        if not relationship:
+            raise (Api_Errors.create_error(404, "No one invited you to his company!"))
+        
+        db.session.delete(relationship)
+        db.session.commit()
+
+        return (jsonify(
+            {"message": "Invitation Canceled successfully", "success": True}
+            ), 200)
+    except Exception as err:
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
+
 @company_route.route('/register', methods=["POST"])
 @verify_token_middleware
 def register_new_company():
@@ -178,7 +205,7 @@ def retreive_company_dashboard(id):
         data_result['user'] = user_data
         data_result['company'] = company
 
-        relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = id).first()
+        relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = id, active = True).first()
         if relationship:
             data_result['isOwner'] = True
         else:

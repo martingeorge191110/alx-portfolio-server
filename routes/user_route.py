@@ -50,7 +50,7 @@ def user_profile():
         if not user:
             raise (Api_Errors.create_error(404, "User not found!"))
         
-        user_companies = db.session.query(Company).join(CompanyOwner).filter(CompanyOwner.user_id == user_id).all()
+        user_companies = db.session.query(Company).join(CompanyOwner).filter(CompanyOwner.user_id == user_id, CompanyOwner.active == True).all()
 
         user_companies_list = []
         for company in user_companies:
