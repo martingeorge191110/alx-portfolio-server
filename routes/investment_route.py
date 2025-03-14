@@ -52,3 +52,24 @@ def investor_send_request_to_company():
     
     except Exception as err:
         return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+
+
+@investment_route.route("/investor/<string:company_id>",methods=["GET"])
+@verify_token_middleware
+def get_the_investment_request(company_id):
+    """Investor retrieves investment requests sent to a specific company"""
+    user_id = g.user_id
+    try:
+        investment_requests = InvestmentDeal.query.filter_by(company_id=company_id, user_id=user_id).all()
+        
+        if not investment_requests:
+            raise Api_Errors.create_error(404, "No investment requests found!")
+
+        return {
+            "investment_requests": [deal.to_dict() for deal in investment_requests]
+        }, 200
+
+    except Exception as err:
+        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+
+
