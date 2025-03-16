@@ -12,6 +12,7 @@ from routes.company_route import company_route
 from routes.company_rates import company_rates_route
 from routes.company_docs import company_docs_route
 from routes.notification_route import notification_route
+from routes.investment_route import investment_route
 
 load_dotenv()
 
@@ -39,8 +40,8 @@ app_bp.register_blueprint(company_route)
 app_bp.register_blueprint(company_rates_route)
 app_bp.register_blueprint(company_docs_route)
 app_bp.register_blueprint(notification_route)
+app_bp.register_blueprint(investment_route)
 app.register_blueprint(app_bp)
-
 
 
 @app.errorhandler(Api_Errors)
