@@ -7,11 +7,12 @@ from middlewares.error_handler import Api_Errors
 from models import db
 from models.company import Company
 from models.company_owners import CompanyOwner
-from models.investment_deal import InvestmentDeal
+from models.investment_deal import InvestmentDeal, DealStatus
 from utilies.stripe_utilies import create_stripe_session_investor
 import stripe
 from os import getenv
 from datetime import datetime, timedelta
+from sqlalchemy import func
 
 
 user_route = Blueprint('user', __name__, url_prefix='/user')
@@ -50,11 +51,23 @@ def user_profile():
         if not user:
             raise (Api_Errors.create_error(404, "User not found!"))
         
-        user_companies = db.session.query(Company).join(CompanyOwner).filter(CompanyOwner.user_id == user_id, CompanyOwner.active == True).all()
+        user_companies = (
+            db.session.query(
+                Company,
+                func.count(InvestmentDeal.id).label("updates")
+            )
+            .join(CompanyOwner)
+            .filter(CompanyOwner.user_id == user_id, CompanyOwner.active == True)
+            .outerjoin(InvestmentDeal, (InvestmentDeal.company_id == Company.id) & (InvestmentDeal.deal_status == DealStatus.Pending))
+            .group_by(Company.id)
+            .all()
+        )
 
         user_companies_list = []
-        for company in user_companies:
-            user_companies_list.append(company.company_card_dict())
+        for company, pending_count in user_companies:
+            company_data = company.company_card_dict()
+            company_data["updates"] = pending_count
+            user_companies_list.append(company_data)
 
         if user.user_type == 'Business':
             return ((jsonify({
@@ -157,7 +170,6 @@ def stripe_webhook():
             payload, sig, getenv("STRIPE_WEBHOOK_SECRET")
         )
     except Exception as e:
-        print(e)
         return jsonify({"error": f"Webhook error: {str(e)}"}), 500
 
     if event["type"] == "checkout.session.completed":

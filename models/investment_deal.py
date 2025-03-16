@@ -17,7 +17,7 @@ class InvestmentDeal(db.Model):
     id = db.Column(db.String(291), unique=True, primary_key=True, default=lambda: str(uuid.uuid4()))
     company_id = db.Column(db.String(191), db.ForeignKey('companies.id'), nullable=False)
     user_id = db.Column(db.String(191), db.ForeignKey('users.id'), nullable=False)
-    amount = db.Column(db.String(191), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
     equity_percentage = db.Column(db.Float, nullable=True)
     deal_status = db.Column(db.Enum(DealStatus), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now())
@@ -37,7 +37,7 @@ class InvestmentDeal(db.Model):
             "user_id": self.user_id,
             "amount": self.amount,
             "equity_percentage": self.equity_percentage,
-            "deal_status": self.deal_status.value,
+            "deal_status": self.deal_status if isinstance(self.deal_status, str) else self.deal_status.value,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }

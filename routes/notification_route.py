@@ -11,6 +11,7 @@ import uuid
 from sqlalchemy.sql import label
 from models.company import Company
 from models.company_owners import CompanyOwner
+from models.investment_deal import InvestmentDeal, DealStatus
 
 
 notification_route = Blueprint("notification", __name__, url_prefix="/notification")
@@ -120,7 +121,7 @@ def get_notification():
         }), 200
 
     except Exception as err:
-        print(err)
+        db.session.rollback()
         raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
 
 @notification_route.route("/<string:to_user_id>", methods=["POST"])
@@ -174,7 +175,6 @@ def update_notification(notification_id):
     try:
         user_id = g.user_id
 
-        print(notification_id)
         notification = Notification.query.filter_by(id=notification_id).first()
         if not notification:
             raise Api_Errors.create_error(404, "Notification not found!")

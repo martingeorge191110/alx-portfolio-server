@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """API for invesments route"""
 
-from flask import request, g, Blueprint
+from flask import request, g, Blueprint, jsonify
 from engine.db_storage import db
 from middlewares.error_handler import Api_Errors
 from middlewares.verify_token import verify_token_middleware
@@ -10,27 +10,27 @@ from models.user import User
 from models.company import Company
 import uuid
 
-investment_route = Blueprint("investment", __name__, "/investment")
+investment_route = Blueprint("investment",  __name__, url_prefix='/investment')
 
 
-@investment_route.route("/investor", methods=["POST"])
+@investment_route.route("/company/<string:company_id>/deal", methods=["POST"])
 @verify_token_middleware
-def investor_send_request_to_company():
+def investor_send_request_to_company(company_id):
     """Investor sends an investment request to a company"""
     user_id = g.user_id
     try:
         data = request.get_json()
-        company_id = data.get("company_id")
-        amount = data.get("amount")
-        equity_percentage = data.get("equity_percentage")
-        
+        amount = float(data.get("amount"))
+        equity_percentage = float(data.get("equity_percentage"))
+
         if not all([company_id, amount, equity_percentage]):
             raise Api_Errors.create_error(400, "Missing required fields!")
-        
+
         user = User.query.filter_by(id=user_id).first()
-        if not user or user.user_type.value != "Investor":
+        user_dict = user.auth_dict()
+        if not user or user_dict['user_type'] != "Investor" or not user_dict['paid']:
             raise Api_Errors.create_error(403, "Unauthorized: Invalid credentials!")
-        
+
         company = Company.query.filter_by(id=company_id).first()
         if not company:
             raise Api_Errors.create_error(404, "company not found!")
@@ -43,15 +43,34 @@ def investor_send_request_to_company():
             equity_percentage=equity_percentage,
             deal_status="Pending",
         )
-        
+
+        investment_request_dict = investment_request.to_dict()
         db.session.add(investment_request)
         db.session.commit()
-        
-        return {"message": "Investment request created successfully!",
-                "Investment details": investment_request.to_dict()}, 201
-    
+
+        new_deal = {
+                "deal_id": investment_request_dict['id'],
+                "amount": investment_request_dict['amount'],
+                "equity_percentage": investment_request_dict['equity_percentage'],
+                "deal_status": investment_request_dict['deal_status'],
+                "created_at": investment_request_dict['created_at'],
+                "updated_at": investment_request_dict['updated_at'],
+                "user": {
+                    "f_n": user.f_n,
+                    "l_n": user.l_n,
+                    "avatar": user.avatar
+                }
+            }
+
+        return (jsonify({
+            "message": "Investment request created successfully!",
+            "success": True,
+            "investment_deal": new_deal}
+                ), 201)
+
     except Exception as err:
-        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+        db.session.rollback()
+        raise (Api_Errors.create_error(getattr(err, "status_code", 500), str(err)))
 
 
 @investment_route.route("/investor/<string:company_id>",methods=["GET"])

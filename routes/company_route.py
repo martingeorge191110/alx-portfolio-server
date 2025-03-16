@@ -17,6 +17,7 @@ from os import getenv
 import uuid
 from datetime import datetime, timedelta
 from utilies.company_utils import get_filtered_companies, invite_owner, accept_invitation
+from models.investment_deal import InvestmentDeal
 
 
 company_route = Blueprint('company', __name__, url_prefix='/company')
@@ -146,7 +147,6 @@ def stripe_webhook():
             payload, sig, getenv("STRIPE_WEBHOOK_SECRET")
         )
     except Exception as e:
-        print(e)
         return jsonify({"error": f"Webhook error: {str(e)}"}), 500
 
     if event["type"] == "checkout.session.completed":
@@ -221,8 +221,38 @@ def retreive_company_dashboard(id):
                 "avatar": user.avatar,
                 "role": user_role
             })
+        
+        investments = InvestmentDeal.query.filter_by(company_id=id).join(User).add_columns(
+            InvestmentDeal.id,
+            InvestmentDeal.amount,
+            InvestmentDeal.equity_percentage,
+            InvestmentDeal.deal_status,
+            InvestmentDeal.created_at,
+            InvestmentDeal.updated_at,
+            User.f_n,
+            User.l_n,
+            User.avatar
+        ).all()
 
+        deals_list = [
+            {
+                "deal_id": deal.id,
+                "amount": deal.amount,
+                "equity_percentage": deal.equity_percentage,
+                "deal_status": deal.deal_status.name,
+                "created_at": deal.created_at,
+                "updated_at": deal.updated_at,
+                "user": {
+                    "f_n": deal.f_n,
+                    "l_n": deal.l_n,
+                    "avatar": deal.avatar
+                }
+            }
+            for deal in investments
+        ]
         data_result['owners'] = company_owners_list
+        data_result['investments'] = deals_list
+
         return (jsonify({
             "success": True,
             "message": "successfully Retreived company data and owners data!",
