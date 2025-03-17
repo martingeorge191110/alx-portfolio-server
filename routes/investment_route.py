@@ -171,7 +171,7 @@ def respond_to_investment_deal(deal_id):
         user_id = g.user_id
         user = User.query.filter_by(id=user_id).first()
         
-        if not user or user.user_type.value != "Business":
+        if not user:
             raise Api_Errors.create_error(403, "Unauthorized: Only company owners can respond to investment deals!")
 
         data = request.get_json()
@@ -188,10 +188,13 @@ def respond_to_investment_deal(deal_id):
         investment_deal.deal_status = new_status
         db.session.commit()
 
-        return {
+        return (jsonify(
+            {
             "message": f"Investment deal {new_status.lower()} successfully!",
+            "success": True,
             "updated_deal": investment_deal.to_dict(),
-        }, 200
+        }), 200)
 
     except Exception as err:
-        return Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
+        db.session.rollback()
+        raise Api_Errors.create_error(getattr(err, "status_code", 500), str(err))
