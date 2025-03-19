@@ -144,7 +144,7 @@ def stripe_webhook():
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig, getenv("STRIPE_WEBHOOK_SECRET")
+            payload, sig, getenv("STRIPE_WEBHOOK_SECRET_TWO")
         )
     except Exception as e:
         return jsonify({"error": f"Webhook error: {str(e)}"}), 500

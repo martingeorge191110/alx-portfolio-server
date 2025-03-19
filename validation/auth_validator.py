@@ -74,9 +74,6 @@ class AuthValidator:
         if not user:
             raise (Api_Errors.create_error(404, f"email address is not exists, register first!"))
 
-        if user.gen_code and user.expired_date_gen_code:
-            raise (Api_Errors.create_error(400, "You already requested a code for reseting password!"))
-
         return (user)
 
 
