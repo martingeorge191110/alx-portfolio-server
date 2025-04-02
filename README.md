@@ -1,4 +1,4 @@
-# Flask Portfolio API
+# Invest Link Application
 
 This is a Flask-based backend API for managing a portfolio system. The application handles authentication, user management, company-related data, investments, and notifications. It also integrates with Stripe for payment processing and Gmail for email notifications.
 
@@ -7,7 +7,7 @@ This is a Flask-based backend API for managing a portfolio system. The applicati
 - User authentication (JWT-based)
 - Company data management
 - Investment tracking
-- Notification system
+- Small Notification system
 - Stripe payment integration
 - Secure email handling with Gmail
 - Structured middleware for token verification and error handling
