@@ -16,8 +16,9 @@ from routes.investment_route import investment_route
 
 load_dotenv()
 
-
+# creating Flask APP
 app = Flask(__name__)
+# all necessary configurations
 app.config['SQLALCHEMY_DATABASE_URI'] = getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = getenv("JWT_KEY")
@@ -33,6 +34,7 @@ cors = CORS(app, supports_credentials=True, origins=["*"])
 
 db_storage = DBStorage(app)
 
+# ALL of app Routes
 app_bp = Blueprint('api', __name__, url_prefix='/api')
 app_bp.register_blueprint(auth_route)
 app_bp.register_blueprint(user_route)
@@ -44,6 +46,7 @@ app_bp.register_blueprint(investment_route)
 app.register_blueprint(app_bp)
 
 
+# Error handling middleware
 @app.errorhandler(Api_Errors)
 def not_found(err):
     response_error = jsonify(Api_Errors.response_error(error=err))

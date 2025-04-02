@@ -75,10 +75,12 @@ def reject_invitation_route(rel_id):
         raise (Api_Errors.create_error(400, "relation id is required!"))
 
     try:
+        # check user is exists or not
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
-        
+        # check the relationship between the user and compnay
+        # 
         relationship = CompanyOwner.query.filter_by(rel_id = rel_id).first()
         if not relationship:
             raise (Api_Errors.create_error(404, "No one invited you to his company!"))
@@ -101,12 +103,14 @@ def register_new_company():
     data_body = json.loads(data)
 
     try:
+        # check user exists, validate the company registering required data
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
 
         CompanyValidation.register_validation(data_body)
 
+        # creating the company with unpaid info in DB.
         new_company = Company.create_company_db(data_body)
 
         db.session.add(new_company)
@@ -122,6 +126,7 @@ def register_new_company():
         db.session.add(relationship)
         db.session.commit()
 
+        # create a stripe session with meta data
         meta_data = {
             "company_id": new_company.company_card_dict().get('id'), "user_id": user.id, "company_name": new_company.name, "duration": 12, "amount": 100
         }
@@ -139,6 +144,7 @@ def register_new_company():
 
 @company_route.route("/webhook", methods=["POST"])
 def stripe_webhook():
+    """WebHook for listing to the payment event!"""
     sig = request.headers.get("Stripe-Signature")
     payload = request.data
 
@@ -149,6 +155,7 @@ def stripe_webhook():
     except Exception as e:
         return jsonify({"error": f"Webhook error: {str(e)}"}), 500
 
+    # after complete the payment process
     if event["type"] == "checkout.session.completed":
         try:
             metadata = event["data"]["object"].get("metadata")
@@ -156,6 +163,7 @@ def stripe_webhook():
             if not metadata:
                 raise (Api_Errors.create_error(400, "Meta Data should be included!"))
 
+            # get the data from mete after process
             company_id = metadata.get("company_id")
             user_id = metadata.get("user_id")
             amount_paid = int(metadata.get("amount"))
@@ -163,6 +171,7 @@ def stripe_webhook():
 
             expiration_date = datetime.utcnow() + timedelta(days=duration * 30)
 
+            # get the company info and submit the payment to DB
             company = Company.query.filter_by(id = company_id).first()
             company.paid = True
             company.subis_end_date = expiration_date
@@ -191,13 +200,16 @@ def stripe_webhook():
 @company_route.route("/<string:id>", methods=['GET'])
 @verify_token_middleware
 def retreive_company_dashboard(id):
+    """Retreiving the company Dashboard"""
     user_id = g.user_id
 
     try:
+        # check user exists.
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
 
+        # check the company data is valid or not
         data_result = {}
         user_data = user.auth_dict()
         company = CompanyValidation.company_id_validation(id)
@@ -205,12 +217,14 @@ def retreive_company_dashboard(id):
         data_result['user'] = user_data
         data_result['company'] = company
 
+        # check the relationship between user and comapny
         relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = id, active = True).first()
         if relationship:
             data_result['isOwner'] = True
         else:
             data_result['isOwner'] = False
 
+        # retreiving the company owners
         company_owners = db.session.query(User, CompanyOwner.user_role).join(CompanyOwner).filter(CompanyOwner.company_id == id, CompanyOwner.active == True).all()
         company_owners_list = []
         for user, user_role in company_owners:
@@ -222,6 +236,7 @@ def retreive_company_dashboard(id):
                 "role": user_role
             })
         
+        # all invetsment deals
         investments = InvestmentDeal.query.filter_by(company_id=id).join(User).add_columns(
             InvestmentDeal.id,
             InvestmentDeal.amount,

@@ -18,6 +18,7 @@ company_docs_route = company_route = Blueprint('company_docs', __name__, url_pre
 @company_docs_route.route("/<string:company_id>", methods=["POST"])
 @verify_token_middleware
 def document_upload(company_id):
+    """Route to upload new document, Just company owners"""
     """upload documents API"""
     user_id = g.user_id
 
@@ -27,15 +28,17 @@ def document_upload(company_id):
         title = data.get("title")
         description = data.get("description", "")
         
+        # Check whether the user is exists or not
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
 
+        # check whether the user authorized to do this action or not
         authorization = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id, active=True).first()
-        
         if not authorization:
             raise Api_Errors.create_error(403, "Unauthorized to manage documents for this company")
 
+        # check the validation of the data
         if not company_id or not doc_url or not title:
             raise Api_Errors.create_error(400, "Company ID, document URL, and title are required!")
 
@@ -58,14 +61,15 @@ def document_upload(company_id):
 @company_docs_route.route('/<string:document_id>', methods=['DELETE'])
 @verify_token_middleware
 def delete_company_document(document_id):
+    """Removing the document, Just company owners"""
     """Deletes a specific company document."""
     try:
         user_id = g.user_id
         data = request.get_json()
         company_id = data.get("company_id")
 
+        # checking the authorization to do this action && document exists or not
         document = CompanyDocs.query.filter_by(id=document_id).first()
-        
         authorization = CompanyOwner.query.filter_by(user_id=user_id, company_id=company_id, active=True).first()
         if not authorization:
             raise Api_Errors.create_error(403, "Unauthorized to manage documents for this company")        
@@ -84,22 +88,25 @@ def delete_company_document(document_id):
 @company_docs_route.route('/<string:company_id>', methods=['GET'])
 @verify_token_middleware
 def get_specific_company_doc(company_id):
+    """Retreiving specific company document"""
     user_id = g.user_id
 
     try:
+        # check user and company existing or not
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
-        
         company = Company.query.filter_by(id = company_id).first()
         if not company:
             raise (Api_Errors.create_error(404, "Company is not found!"))
-        
+
+        # checking the relationship between both the user and company
         relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = company_id, active = True).first()
         user_data = user.auth_dict()
         if not relationship and (not user_data['paid'] or (user_data['paid'] and user_data['subis_end_date'] < datetime.utcnow())):
             raise (Api_Errors.create_error(403, "You have not authorization to retreive the data!"))
 
+        # get all company docs after checking
         all_docs = CompanyDocs.query.filter_by(company_id = company_id).all()
         docs_list = []
         for doc in all_docs:

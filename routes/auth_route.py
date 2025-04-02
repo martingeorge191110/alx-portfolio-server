@@ -17,6 +17,7 @@ auth_route = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_route.route('/register', methods=['POST'], strict_slashes=False)
 def register():
+    """Register Function that Authinticate new User to the platform"""
     try:
         data = request.data.decode()
         data_body = json.loads(data)
@@ -55,7 +56,7 @@ def register():
 
 @auth_route.route('/login', methods=['POST'], strict_slashes=False)
 def login():
-    """Login Route controller"""
+    """Login Route controller, Authinticate existing user"""
     try:
         data = request.data.decode()
         data_body = json.loads(data)
@@ -82,6 +83,7 @@ def login():
 
 @auth_route.route('/request-code', methods=['POST'], strict_slashes=False)
 def request_code():
+    """Route to request a code for reseting new password!"""
     from utilies.mail_helper import send_code_mail
 
     try:
@@ -112,6 +114,7 @@ def request_code():
 
 @auth_route.route('/reset-pass', methods=['POST'], strict_slashes=False)
 def reset_pass_code():
+    """Reseting password after verifying the genereted code"""
     try:
         data = request.data.decode()
         data_body = json.loads(data)
@@ -129,6 +132,7 @@ def reset_pass_code():
 
 @auth_route.route('/reset-pass', methods=['PUT'], strict_slashes=False)
 def reset_password():
+    """Reseting password after verifying the genereted code"""
     try:
         data = request.data.decode()
         data_body = json.loads(data)

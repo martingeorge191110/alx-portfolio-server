@@ -23,6 +23,7 @@ user_route = Blueprint('user', __name__, url_prefix='/user')
 def verify_token():
     """Function to chek token validation"""
     try:
+        # GET user info from DB ther response with him in case of every thing is valid
         user_id = g.user_id
         user = User.query.filter_by(id = user_id).first()
 
@@ -41,16 +42,19 @@ def verify_token():
 @user_route.route("/profile", methods=["GET"])
 @verify_token_middleware
 def user_profile():
+    """Retreiving the user profile (his own data, companies and investment deals)"""
     try:
         user_id = g.user_id
 
         if not user_id or str(user_id).strip() == '':
             raise (Api_Errors.create_error(400, "User id not found!"))
 
+        # get user info from DB
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User not found!"))
         
+        # get user companies
         user_companies = (
             db.session.query(
                 Company,
@@ -77,6 +81,7 @@ def user_profile():
                 "companies": user_companies_list
             }), 200))
 
+        # all of user investment deals then response
         investments = (
             db.session.query(Company, InvestmentDeal)
             .join(InvestmentDeal, Company.id == InvestmentDeal.company_id)
@@ -102,6 +107,7 @@ def user_profile():
 @user_route.route("/avatar", methods=["PUT"])
 @verify_token_middleware
 def change_user_avatar():
+    """Route to change the avatar"""
     user_id = g.user_id
 
     data = request.data.decode()
@@ -135,9 +141,11 @@ def change_user_avatar():
 @user_route.route("/subiscripe", methods=["POST"])
 @verify_token_middleware
 def subiscription_investor():
+    """Route to make account a premium"""
     user_id = g.user_id
 
     try:
+        # check whether user exists or not, and his account type
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
@@ -146,6 +154,7 @@ def subiscription_investor():
         if user_data['user_type'] is not 'Investor':
             raise (Api_Errors.create_error(403, "You have not the permission to have subiscription, Update your account to be investor account!"))
 
+        # in case of every thing is valid, creating a stripe session
         meta_data = {
             "user_id": user_id, "duration": 12, "amount": 25
         }

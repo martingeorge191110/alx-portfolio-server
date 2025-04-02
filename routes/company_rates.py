@@ -17,7 +17,7 @@ company_rates_route = company_route = Blueprint('company_rates', __name__, url_p
 @company_route.route("/<string:company_id>", methods=['GET'])
 @verify_token_middleware
 def growth_rates_information(company_id):
-    """"""
+    """Get the crowth rates of the company"""
     user_id = g.user_id
 
     try:
@@ -25,8 +25,10 @@ def growth_rates_information(company_id):
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
 
+        # validate company unique identifier and the growht rates info validation
         company = CompanyValidation.company_id_validation(company_id)
 
+        # find all of company growth rates in order of asc
         rates = CompanyGrowthRate.query.filter_by(company_id = company_id).order_by(CompanyGrowthRate.year.asc()).all()
         rates_list = []
         for rate in rates:
@@ -45,19 +47,24 @@ def growth_rates_information(company_id):
 @company_route.route("/<string:company_id>", methods=['POST'])
 @verify_token_middleware
 def create_growth_rates(company_id):
+    """Create a growht rates for specific company"""
     user_id = g.user_id
     data = request.data.decode()
     data_body = json.loads(data)
 
     try:
+        # check if the user is exists or not
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise Api_Errors.create_error(404, "User is not found!")
 
+        # validation of company info
         company = CompanyValidation.company_id_validation(company_id)
 
+        # check the validation of the growth rates date
         CompanyValidation.growth_rates_validation(data_body)
 
+        # check whether the user is owner or not
         relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = company_id, active = True)
         if not relationship:
             raise (Api_Errors.create_error(403, "You are not authirezed to to this action"))
@@ -87,16 +94,19 @@ def create_growth_rates(company_id):
 @company_route.route("/<string:company_id>", methods=['DELETE'])
 @verify_token_middleware
 def delete_all_company_rates(company_id):
+    """Delete all company growth rates"""
     user_id = g.user_id
 
     try:
+        # check if the user is exists or not
         user = User.query.filter_by(id = user_id).first()
         if not user:
             raise (Api_Errors.create_error(404, "User is not found!"))
 
-
+        # validation of company info
         company = CompanyValidation.company_id_validation(company_id)
 
+        # check the relationship between the user and the company
         relationship = CompanyOwner.query.filter_by(user_id = user_id, company_id = company_id, active = True)
         if not relationship:
             raise (Api_Errors.create_error(403, "You are not authirezed to to this action"))

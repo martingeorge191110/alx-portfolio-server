@@ -12,12 +12,14 @@ class Api_Errors(Exception):
 
     @staticmethod
     def create_error(status_code, message):
+        """Function that creating object of the error"""
         if not isinstance(status_code, int):
             status_code = 500
         return (Api_Errors(status_code, message))
 
     @staticmethod
     def response_error(error):
+        """Function that response in case of errors!"""
         err = {
             "success": False,
             "message": error.message,
